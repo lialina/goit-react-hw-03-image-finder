@@ -1,10 +1,20 @@
 import { Component } from 'react';
-import ImageGalleryItem from 'components/ImageGalleryItem/ImageGalleryItem';
 import s from 'components/ImageGallery/ImageGallery.module.css';
+import ImageGalleryItem from 'components/ImageGalleryItem/ImageGalleryItem';
+import SearchError from 'components/SearchError/SearchError';
+import Modal from 'components/Modal/Modal';
+import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
+import Loader from 'react-loader-spinner';
+import { fetchImages } from 'services/images-api';
+
 class ImageGallery extends Component {
   state = {
-    hits: [],
-    loading: false,
+    hiimagests: [],
+    showModal: false,
+    error: null,
+    currentModalImage: null,
+    page: 1,
+    status: 'idle',
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -14,40 +24,75 @@ class ImageGallery extends Component {
     if (prevQuery !== updatedQuery) {
       console.log('Изменился query');
 
-      this.setState({ loading: true });
-      fetch(
-        `https://pixabay.com/api/?q=${updatedQuery}&page=1&key=22041445-5ed2f4f2b816c2335628bcb5d&image_type=photo&orientation=horizontal&per_page=12`,
-      )
-        .then(res => res.json())
+      this.setState({ status: 'pending' });
+
+      fetchImages(updatedQuery, this.page)
         .then(resData => resData.hits)
-        .then(hits => this.setState({ hits }))
-        .finally(() => this.setState({ loading: false }));
+        .then(hits => this.setState({ images: hits, status: 'resolved' }))
+        .catch(error => this.setState({ error, status: 'rejected' }));
     }
   }
 
-  render() {
-    const { hits, loading } = this.state;
-    const { query } = this.props;
+  toggleModal = () => {
+    this.setState(({ showModal }) => ({
+      showModal: !showModal,
+    }));
+  };
 
-    return (
-      <div>
-        {loading && <div>Loading...</div>}
-        {!query && (
-          <div>
-            There are no images here yet, but they will appear if you enter your
-            request
-          </div>
-        )}
-        {hits && (
-          <ul className={s.ImageGallery}>
-            {hits.map(({ id, webformatURL }) => (
-              <ImageGalleryItem id={id} webformatURL={webformatURL} />
-            ))}
-          </ul>
-        )}
-        <p></p>
-      </div>
-    );
+  onImageClick = id => {
+    const modalImage = this.state.images.find(image => image.id === id);
+    const modalImageUrl = modalImage.largeImageURL;
+    this.setState({
+      currentModalImage: modalImageUrl,
+    });
+    this.toggleModal();
+  };
+
+  render() {
+    const { images, showModal, error, status, currentModalImage } = this.state;
+    // const { query } = this.props;
+
+    if (status === 'idle') {
+      return <div>Enter your request</div>;
+    }
+
+    if (status === 'pending') {
+      return (
+        <Loader
+          type="TailSpin"
+          color="#00BFFF"
+          height={80}
+          width={80}
+          timeout={3000}
+        />
+      );
+    }
+
+    if (status === 'rejected') {
+      return <SearchError message={error.message} />;
+      // <h2>Sorry, we could not find images with the keyword {query}</h2>
+    }
+
+    if (status === 'resolved') {
+      return (
+        <ul className={s.ImageGallery}>
+          {images.map(({ id, webformatURL }) => (
+            <ImageGalleryItem
+              onImageClick={this.onImageClick}
+              key={id}
+              id={id}
+              webformatURL={webformatURL}
+              // largeImageURL={largeImageURL}
+            />
+          ))}
+          {showModal && (
+            <Modal>
+              <img src={currentModalImage} alt="" />
+            </Modal>
+          )}
+        </ul>
+      );
+    }
   }
 }
 
