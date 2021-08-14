@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 function SearchError({ message }) {
   return (
     <div role="alert">
@@ -5,5 +7,9 @@ function SearchError({ message }) {
     </div>
   );
 }
+
+SearchError.propTypes = {
+  message: PropTypes.string.isRequired,
+};
 
 export default SearchError;

@@ -1,16 +1,16 @@
 import { Component } from 'react';
 import { ToastContainer } from 'react-toastify';
 import s from 'App.module.css';
-import Searchbar from 'components/Searchbar/Searchbar';
-import ImageGallery from 'components/ImageGallery/ImageGallery';
-import Container from 'components/Container/Container';
-
-import SearchError from 'components/SearchError/SearchError';
-import Modal from 'components/Modal/Modal';
-import Button from 'components/Button/Button';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import Loader from 'react-loader-spinner';
 import { fetchImages } from 'services/images-api';
+
+import Searchbar from 'components/Searchbar/Searchbar';
+import Container from 'components/Container/Container';
+import ImageGallery from 'components/ImageGallery/ImageGallery';
+import SearchError from 'components/SearchError/SearchError';
+import Modal from 'components/Modal/Modal';
+import Button from 'components/Button/Button';
 
 class App extends Component {
   state = {
@@ -40,20 +40,21 @@ class App extends Component {
       fetchImages(query, page)
         .then(resData => resData.hits)
         .then(hits => {
+          this.setState({
+            status: 'resolved',
+            loader: false,
+          });
+
           if (prevState.page < page) {
-            this.setState({
-              images: [...prevState.images, ...hits],
-              status: 'resolved',
-            });
+            this.setState({ images: [...prevState.images, ...hits] });
           } else {
-            this.setState({ images: hits, status: 'resolved' });
+            this.setState({ images: hits });
           }
         })
         .catch(error => this.setState({ error, status: 'rejected' }))
         .finally(() => {
           if (this.state.images.length > 12) {
             this.scroll();
-            this.setState({ loader: false });
           }
         });
     }

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import s from 'components/ImageGalleryItem/ImageGalleryItem.module.css';
 
 function ImageGalleryItem({ id, webformatURL, onImageClick }) {
@@ -7,5 +8,11 @@ function ImageGalleryItem({ id, webformatURL, onImageClick }) {
     </li>
   );
 }
+
+ImageGalleryItem.propTypes = {
+  id: PropTypes.number,
+  webformatURL: PropTypes.string,
+  onImageClick: PropTypes.func,
+};
 
 export default ImageGalleryItem;
