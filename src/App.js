@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import { ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import s from 'App.module.css';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import Loader from 'react-loader-spinner';
@@ -25,7 +26,6 @@ class App extends Component {
   };
 
   handleFormSubmit = query => {
-    console.log(query);
     this.setState({ query, page: 1, images: [] });
   };
 
@@ -33,13 +33,18 @@ class App extends Component {
     const { query, page } = this.state;
 
     if (prevState.query !== query || prevState.page !== page) {
-      console.log('Изменился query или Добавилась страница');
-
       this.setState({ loader: true });
 
       fetchImages(query, page)
         .then(resData => resData.hits)
         .then(hits => {
+          if (hits.length === 0) {
+            toast.error(
+              `There are no images on ${query} request, please try another one.`,
+            );
+            return;
+          }
+
           this.setState({
             status: 'resolved',
             loader: false,
@@ -123,7 +128,7 @@ class App extends Component {
             </Modal>
           )}
 
-          <ToastContainer autoClose={3000} />
+          <ToastContainer autoClose={5000} />
         </Container>
       </div>
     );

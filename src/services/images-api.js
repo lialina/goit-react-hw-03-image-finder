@@ -9,6 +9,8 @@ export const fetchImages = async function (updatedQuery, page) {
       return response.json();
     }
 
-    return Promise.reject(new Error(`No images on request ${updatedQuery}`));
+    return Promise.reject(
+      new Error('Possibly server error, please try again.'),
+    );
   });
 };
